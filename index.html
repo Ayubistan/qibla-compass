@@ -134,6 +134,7 @@ body {
   <div class="facing" id="qface"></div>
 </div>
 
+<button id="startBtn" style="margin-top:10px;padding:14px 30px;background:linear-gradient(135deg,#f0c040,#d4a030);color:#0a1628;border:none;border-radius:14px;font-size:17px;font-weight:700;cursor:pointer;display:none;">🧭 Start Live Compass</button>
 <div class="hint" id="hint">Detecting compass...</div>
 
 <script>
@@ -231,10 +232,23 @@ body {
   }
 
   if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-    // iOS — needs user gesture. Auto-request (works in Safari, may fail in webview)
-    DeviceOrientationEvent.requestPermission().then(function(s) {
-      if (s === 'granted') window.addEventListener('deviceorientation', onDevOr, true);
-    }).catch(function(){});
+    // iOS — MUST be triggered by user tap
+    var btn = document.getElementById('startBtn');
+    btn.style.display = 'block';
+    btn.onclick = function() {
+      DeviceOrientationEvent.requestPermission().then(function(s) {
+        if (s === 'granted') {
+          window.addEventListener('deviceorientation', onDevOr, true);
+          btn.style.display = 'none';
+          document.getElementById('hint').innerHTML = '🧭 <b>Live compass active!</b> Rotate your phone.';
+        } else {
+          document.getElementById('hint').innerHTML = '❌ Compass permission denied. Check Settings → Safari → Motion & Orientation Access.';
+        }
+      }).catch(function(e) {
+        document.getElementById('hint').innerHTML = '⚠️ Compass not available: ' + e.message;
+      });
+    };
+    document.getElementById('hint').innerHTML = '👆 Tap <b>"Start Live Compass"</b> above to enable rotation!';
   } else {
     window.addEventListener('deviceorientation', onDevOr, true);
   }
